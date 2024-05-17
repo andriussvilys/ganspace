@@ -163,9 +163,9 @@ class StyleGAN2(BaseModel):
             os.makedirs(checkpoint.parent, exist_ok=True)
             self.download_checkpoint(checkpoint)
         
-        ckpt = torch.load(checkpoint)
-        self.model.load_state_dict(ckpt['g_ema'], strict=False)
-        self.latent_avg = ckpt['latent_avg'].to(self.device)
+        g_ema = torch.load(checkpoint)
+        self.model.load_state_dict(g_ema, strict=False)
+        # self.latent_avg = ckpt['latent_avg'].to(self.device)
 
     def sample_latent(self, n_samples=1, seed=None, truncation=None):
         if seed is None:
