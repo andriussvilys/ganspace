@@ -23,6 +23,14 @@ from . import stylegan
 from . import stylegan2
 from abc import abstractmethod, ABC as AbstractBaseClass
 from functools import singledispatch
+import pickle
+
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import stylegan2.stylegan2_tensorflow.dnnlib as dnnlib
 
 class BaseModel(AbstractBaseClass, torch.nn.Module):
 
@@ -114,6 +122,8 @@ class StyleGAN2(BaseModel):
             'bedrooms': 256,
             'kitchen': 256,
             'places': 256,
+            # cakes
+            'cakes': 256
         }
 
         assert self.outclass in configs, \
@@ -138,7 +148,8 @@ class StyleGAN2(BaseModel):
     def download_checkpoint(self, outfile):
         checkpoints = {
             'horse': 'https://drive.google.com/uc?export=download&id=18SkqWAkgt0fIwDEf2pqeaenNi4OoCo-0',
-            'ffhq': 'https://drive.google.com/uc?export=download&id=1FJRwzAkV-XWbxgTwxEmEACvuqF5DsBiV',
+            # 'ffhq': 'https://drive.google.com/uc?export=download&id=1FJRwzAkV-XWbxgTwxEmEACvuqF5DsBiV',
+            'ffhq': 'https://drive.google.com/file/d/1-6ekrDLYJn5xoI3excTm1bgOD9ySbO2h',
             'church': 'https://drive.google.com/uc?export=download&id=1HFM694112b_im01JT7wop0faftw9ty5g',
             'car': 'https://drive.google.com/uc?export=download&id=1iRoWclWVbDBAy5iXYZrQnKYSbZUqXI6y',
             'cat': 'https://drive.google.com/uc?export=download&id=15vJP8GDr0FlRYpE8gD7CdeEz2mXrQMgN',
@@ -152,17 +163,29 @@ class StyleGAN2(BaseModel):
 
     def load_model(self):
         checkpoint_root = os.environ.get('GANCONTROL_CHECKPOINT_DIR', Path(__file__).parent / 'checkpoints')
-        checkpoint = Path(checkpoint_root) / f'stylegan2/stylegan2_{self.outclass}_{self.resolution}.pt'
-        
+        checkpoint = next(Path(checkpoint_root).rglob(f'stylegan2_{self.outclass}_{self.resolution}.*'))
+        print(f"checkpoint: {checkpoint}, device: {self.device}")
+
         self.model = stylegan2.Generator(self.resolution, 512, 8).to(self.device)
 
-        if not checkpoint.is_file():
-            os.makedirs(checkpoint.parent, exist_ok=True)
-            self.download_checkpoint(checkpoint)
-        
-        ckpt = torch.load(checkpoint)
+        ckpt = None
+        if checkpoint.suffix == '.pkl':
+            with open(checkpoint, 'rb') as f:
+                ckpt = pickle.load(f)
+                print(ckpt)
+
+        else:
+            if not checkpoint.is_file():
+                os.makedirs(checkpoint.parent, exist_ok=True)
+                self.download_checkpoint(checkpoint)
+
+        with open(checkpoint, 'rb') as f:
+            ckpt = torch.load(f, map_location=torch.device('cpu'))
+            
+        print(ckpt.keys())
+        print(ckpt['g_ema'].keys())
         self.model.load_state_dict(ckpt['g_ema'], strict=False)
-        self.latent_avg = ckpt['latent_avg'].to(self.device)
+        # self.latent_avg = ckpt['latent_avg'].to(self.device)
 
     def sample_latent(self, n_samples=1, seed=None, truncation=None):
         if seed is None:

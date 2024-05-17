@@ -1,0 +1,1 @@
+!python visualize.py --model=StyleGAN2 --class=cakes --use_w --layer=style -c 10
