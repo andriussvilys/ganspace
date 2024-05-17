@@ -114,9 +114,9 @@ class StyleGAN2(BaseModel):
             'bedrooms': 256,
             'kitchen': 256,
             'places': 256,
-            # Andrius
-            'cakes': 256 #by Justin Pinkney
-            'faces': 256 #by Justin Pinkney
+            # Andrius [both trained by Justin Pinkney]
+            'cakes': 256, 
+            'faces': 256
         }
 
         assert self.outclass in configs, \
