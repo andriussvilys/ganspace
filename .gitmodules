@@ -5,4 +5,4 @@
 [submodule "stylegan2/stylegan2-pytorch"]
 	path = models/stylegan2/stylegan2-pytorch
 	url = https://github.com/harskish/stylegan2-pytorch.git
-	ignore = untracked
+	ignore = all
