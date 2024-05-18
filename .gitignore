@@ -3,5 +3,6 @@
 **/.DS_Store
 cache/
 out/
-# checkpoints/
+checkpoints/
 **/.ipynb_checkpoints/
+models/stylegan2/stylegan2
