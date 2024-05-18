@@ -165,7 +165,7 @@ class StyleGAN2(BaseModel):
         
         g_ema = torch.load(checkpoint)
         self.model.load_state_dict(g_ema, strict=False)
-        # self.latent_avg = ckpt['latent_avg'].to(self.device)
+        self.latent_avg = g_ema['mapping.w_avg'].to(self.device)
 
     def sample_latent(self, n_samples=1, seed=None, truncation=None):
         if seed is None:
